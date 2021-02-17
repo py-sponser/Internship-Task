@@ -129,5 +129,3 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "" # Company's email, required to send emails to users
 EMAIL_HOST_PASSWORD = "" # Company Email's password
 
-# DATE FORMAT
-DATE_INPUT_FORMATS = ('%d-%m-%Y','%Y-%m-%d')

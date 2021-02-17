@@ -38,55 +38,62 @@ def book(request):
             mobile_number = phone_code + str(phone_number) # getting complete mobile number as string
             selected_countries = ", ".join(countries) # converting countries list to be saved as string
             print(selected_countries)
-            if not AppointmentRequests.objects.filter(phone_number=mobile_number,email_address=email_address): # if a user tries to request an appointment with new info of mobile number and email address (not already exist in database)
+            if not AppointmentRequests.objects.filter(phone_number=mobile_number): # if a user tries to request an appointment with new info of mobile number and email address (not already exist in database)
+                if not AppointmentRequests.objects.filter(email_address=email_address):
+
+                    AppointmentRequests.objects.create(first_name=first_name,last_name=last_name,email_address=email_address,phone_number=mobile_number,
+                            countries=selected_countries,company= company,objective=objective, details=details) # create an appointment
 
 
-                AppointmentRequests.objects.create(first_name=first_name,last_name=last_name,email_address=email_address,phone_number=mobile_number,
-                        countries=selected_countries,company= company,objective=objective, details=details) # create an appointment
+                    # send email to user
+                    send_mail( 
+                        subject=f"Service Provider Appointment",
+                        message=f"""
+                        Dear {first_name} {last_name},
+                        [+] Your Info provided:
+                        1- First name: {first_name}.
+                        2- Last name: {last_name}.
+                        3- Email address: {email_address}.
+                        4- Phone number: {mobile_number}.
+                        5- Countries: {selected_countries}.
+                        6- Company: {company}.
+                        7- Objective: {objective}.
+                        8- Details:
+                        {details}
+                        \n
+                        We will communicate with you as soon as possible.
+                        """,
+                        recipient_list=[email_address,],from_email="todotasks4000@gmail.com",fail_silently=False,
+                    )
+                    # send email to service provider agent
+                    send_mail(
+                        subject=f"A new requested Appointment by {first_name} {last_name}",
+                        message=f"""
+                        [+] Info provided:
+                        1- First name: {first_name}.
+                        2- Last name: {last_name}.
+                        3- Email address: {email_address}.
+                        4- Phone number: {mobile_number}.
+                        5- Countries: {selected_countries}.
+                        6- Company: {company}.
+                        7- Objective: {objective}.
+                        8- Details:
+                        {details}
+                        """,
+                        recipient_list=["todotasks4000@gmail.com",],from_email="todotasks4000@gmail.com",fail_silently=False,
+                    )
+                    return redirect("confirm")
 
+                else:
+                    messages.info(request,"You have already sent a request, we will communicate you as soon as possible, we will handle any changes you want (if exist) when contact.")
+                    return redirect("book") # reload the page
 
-
-                send_mail( # send email to him
-                    subject=f"Service Provider Appointment",
-                    message=f"""
-                    Dear {first_name} {last_name},
-                    [+] Your Info provided:
-                    1- First name: {first_name}.
-                    2- Last name: {last_name}.
-                    3- Email address: {email_address}.
-                    4- Phone number: {mobile_number}.
-                    5- Countries: {selected_countries}.
-                    6- Company: {company}.
-                    7- Objective: {objective}.
-                    8- Details:
-                    {details}
-                    \n
-                    We will communicate with you as soon as possible.
-                    """,
-                    recipient_list=[email_address,],from_email="todotasks4000@gmail.com",fail_silently=False,
-                )
-                send_mail( # send email to ourselves
-                    subject=f"A new requested Appointment by {first_name} {last_name}",
-                    message=f"""
-                    [+] Info provided:
-                    1- First name: {first_name}.
-                    2- Last name: {last_name}.
-                    3- Email address: {email_address}.
-                    4- Phone number: {mobile_number}.
-                    5- Countries: {selected_countries}.
-                    6- Company: {company}.
-                    7- Objective: {objective}.
-                    8- Details:
-                    {details}
-                    """,
-                    recipient_list=["todotasks4000@gmail.com",],from_email="todotasks4000@gmail.com",fail_silently=False,
-                )
-            else: # if user tries to request a new appointment using same email address and mobile number
-                messages.info(request,"You have already sent a request, we will communicate you as soon as possible, we will handle changes you want (if exist) when contact.")
+            else: # if user tries to request a new appointment using same mobile number
+                messages.info(request,"You have already sent a request, we will communicate you as soon as possible, we will handle any changes you want (if exist) when contact.")
                 return redirect("book") # reload the page
             
 
-            return redirect("confirm")
+
         else: # if any field is empty or None
             messages.info(request,"Please, fill empty fields")
             return redirect("book") # reload the page
@@ -131,6 +138,7 @@ def dashboard(request):
     appointments = AppointmentRequests.objects.all().filter(completed=False)
     return render(request,"dashboard.html",{"appointments":appointments}) 
 
+@login_required(login_url="login")
 def update_appointment(request,pk):
     """Enable to update appointment details, especially assigning it as completed"""
     appointment = AppointmentRequests.objects.get(id=pk)
