@@ -11,6 +11,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 
 def index(request):
+    """Home Page"""
     return render(request,"index.html")
 
 
@@ -38,8 +39,12 @@ def book(request):
             selected_countries = ", ".join(countries) # converting countries list to be saved as string
             print(selected_countries)
             if not AppointmentRequests.objects.filter(phone_number=mobile_number,email_address=email_address): # if a user tries to request an appointment with new info of mobile number and email address (not already exist in database)
+
+
                 AppointmentRequests.objects.create(first_name=first_name,last_name=last_name,email_address=email_address,phone_number=mobile_number,
                         countries=selected_countries,company= company,objective=objective, details=details) # create an appointment
+
+
 
                 send_mail( # send email to him
                     subject=f"Service Provider Appointment",
@@ -92,6 +97,7 @@ def book(request):
 
 
 def confirm(request):
+    """Third page of confirmation"""
     return render(request,"confirm.html")
 
 def user_login(request):
