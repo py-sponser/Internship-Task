@@ -1,0 +1,5 @@
+{
+    "python.pythonPath": "/home/sponser/miniconda3/envs/myDjangoEnv/bin/python",
+    "python.linting.enabled": false,
+    "python.linting.pylintEnabled": true
+}
